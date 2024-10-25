@@ -1,23 +1,37 @@
 <script setup lang="ts">
-import {ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {post} from "../boot";
+import {AxiosError} from "axios";
+import {ref} from "vue";
 
-const credential = ref({
+const credential = {
   email: "",
   password: ""
-})
+}
+const showPassword = ref(false)
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
+const serverError = ref('')
 const router = useRouter()
 const login = () => {
-  const {email, password} = credential.value
-  post('/auth/login', {email, password})
-      .then(() => {
-        router.push('/')
+  console.log("Sending credentials:", credential)
+  post('/users/auth/login', credential)
+      .then((res) => {
+        if (res.data.data.token) {
+          localStorage.setItem('token', res.data.data.token)
+          router.push('/')
+        }
       })
-      .catch(() => {
-        alert('Failed to login')
+      .catch((e: AxiosError) => {
+        if (e.response) {
+          serverError.value = e.response.data.message
+        }
       })
+
 }
+
 </script>
 
 <template>
@@ -33,6 +47,7 @@ const login = () => {
           <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
             Sign in to your account
           </h1>
+          <div v-if="serverError" class="text-red-500 text-sm">{{serverError}}</div>
           <form @submit.prevent="login" class="space-y-4 md:space-y-6" action="#">
             <div>
               <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
@@ -40,12 +55,25 @@ const login = () => {
                      class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                      placeholder="name@company.com" required="">
             </div>
-            <div>
-              <label for="password"
-                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
-              <input v-model="credential.password" type="password" name="password" id="password" placeholder="••••••••"
-                     class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                     required="">
+            <div class="relative">
+              <input
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="credential.password"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  placeholder="••••••••"
+              />
+              <button
+                  type="button"
+                  @click="togglePasswordVisibility"
+                  class="absolute inset-y-0 right-0 flex items-center px-2 text-gray-600 focus:outline-none"
+              >
+              <span v-if="showPassword">
+                <i class="material-icons">visibility_off</i>
+              </span>
+                <span v-else>
+                  <i class="material-icons">visibility</i>
+                </span>
+              </button>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-start">

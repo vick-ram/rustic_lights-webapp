@@ -1,10 +1,7 @@
 import axios, {AxiosInstance, AxiosRequestConfig, AxiosResponse} from 'axios'
 
 const apiClient: AxiosInstance = axios.create({
-    baseURL: 'https://23c4-102-135-174-124.ngrok-free.app',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    baseURL: 'http://localhost:8080',
 })
 
 apiClient.interceptors.request.use(
@@ -40,4 +37,3 @@ export const del = <T>(url: string, config?: AxiosRequestConfig): Promise<AxiosR
     return apiClient.delete(url, config)
 }
 
-export default apiClient

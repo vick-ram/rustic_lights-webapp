@@ -69,7 +69,37 @@
             <div class="gap-4 sm:flex sm:items-center">
               <button @click="$router.push('/')" type="button" class="w-full rounded-lg  border border-gray-200 bg-white px-5  py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700">Return to Shopping</button>
 
-              <button type="submit" class="mt-4 flex w-full items-center justify-center rounded-lg bg-primary-700  px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-800 focus:outline-none focus:ring-4 focus:ring-primary-300  dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 sm:mt-0">Send the order</button>
+              <button
+                  type="submit"
+                  class="w-full flex items-center
+                    justify-center text-white
+                    bg-blue-700 hover:bg-blue-800
+                    border border-gray-200 focus:ring-4
+                    focus:outline-none focus:ring-gray-100
+                    font-medium rounded-lg text-sm px-5 py-2.5
+                    text-center dark:focus:ring-gray-600
+                    dark:bg-gray-800 dark:border-gray-700
+                    dark:text-white dark:hover:bg-gray-700
+                    me-2 mb-2 disabled:bg-gray-400
+                    disabled:text-gray-50
+                    disabled:hover:bg-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48" class="me-2">
+                  <path fill="#aed580"
+                        d="M31.003,7.001l-0.001-5.5c0-0.828,0.672-1.5,1.5-1.5	c0.828,0,1.5,0.672,1.5,1.5v5.5H31.003z"></path>
+                  <path fill="#aed580"
+                        d="M14.964,47.999h18.073c0.533,0,0.965-0.432,0.965-0.965V4.964c0-0.533-0.432-0.965-0.965-0.965	H14.964c-0.533,0-0.965,0.432-0.965,0.965v42.07C13.999,47.567,14.431,47.999,14.964,47.999z"></path>
+                  <path fill="#fff" fill-rule="evenodd"
+                        d="M17.739,29.001h12.524c0.962,0,1.741-0.78,1.741-1.741V10.743	c0-0.962-0.78-1.741-1.741-1.741H17.739c-0.962,0-1.741,0.78-1.741,1.741V27.26C15.997,28.222,16.777,29.001,17.739,29.001z"
+                        clip-rule="evenodd"></path>
+                  <path fill="#9b2310" fill-rule="evenodd"
+                        d="M12.001,22.001	c3.643-0.7,5.865-2.448,7-5c1.135,2.552,3.357,4.3,7,5H12.001z"
+                        clip-rule="evenodd"></path>
+                  <path fill="#e60023" fill-rule="evenodd"
+                        d="M12.001,22.001	c4.273,0.867,6.476,1,11,1c5.076,0,11.712-1.939,14-6l-9-4C24.039,18.139,21.863,22.001,12.001,22.001z"
+                        clip-rule="evenodd"></path>
+                </svg>
+                Pay with M-Pesa
+              </button>
             </div>
           </div>
         </div>
@@ -176,7 +206,10 @@
 <script setup>
 import {onMounted } from 'vue'
 import {initFlowbite, initModals} from 'flowbite'
+import {useRoute} from 'vue-router'
 
+const route = useRoute()
+const orders = route.params.orders
 onMounted(() => {
   initFlowbite()
   initModals()

@@ -1,27 +1,34 @@
 <script setup lang="ts">
 import {useRouter} from 'vue-router'
-import {ref} from "vue";
 import {post} from '../boot'
+import {AxiosError} from "axios";
 
-
-const user = ref({
+const errorMessage = ref('')
+const user = {
   firstName: "",
   lastName: "",
   email: "",
   password: "",
   phone: ""
-})
+}
 const router = useRouter()
 const signup = () => {
-  const {firstName, lastName, email, password, phone} = user.value
-  const name = `${firstName} ${lastName}`
-  post('/users/auth/register', {name, email, password, phone})
+  const userData = {
+    name: `${user.firstName} ${user.lastName}`,
+    email: user.email,
+    password: user.password,
+    phone: user.phone
+  }
+  post('/users/auth/register', userData)
       .then((res) => {
-        console.log(res.data)
-        router.push('/auth/login')
+        if (res.status === 201) {
+          router.push('/auth/login')
+        }
       })
-      .catch((e) => {
-        console.log(e)
+      .catch((e: AxiosError) => {
+        if (e.response) {
+          errorMessage.value = e.response.data.message
+        }
       })
 }
 </script>

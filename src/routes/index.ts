@@ -1,6 +1,7 @@
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import MainLayout from "../layouts/MainLayout.vue";
 import AuthLayout from "../layouts/AuthLayout.vue";
+
 const routes = [
     {
         path: '/auth',
@@ -38,6 +39,11 @@ const routes = [
                 component: () => import('../pages/ServicePage.vue')
             },
             {
+                path: '/profile/:id',
+                name: 'Profile',
+                component: () => import('../pages/ProfilePage.vue')
+            },
+            {
                 path: '/cart',
                 name: 'Cart',
                 component: () => import('../pages/CartPage.vue')
@@ -70,3 +76,11 @@ export const router: Router = createRouter({
     history: createWebHistory(),
     routes
 });
+
+router.beforeEach((to, from, next) => {
+    const isLoggedIn = !!localStorage.getItem('token')
+    if (isLoggedIn && to.path.includes('/auth')) {
+        next({name: 'Home'})
+    }
+    next()
+})
