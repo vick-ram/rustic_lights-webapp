@@ -37,7 +37,7 @@
           <i class="material-icons">shopping_cart</i>
           <div
               class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2 dark:border-gray-900">
-            {{totalProductsInCart}}
+            {{ totalProductsInCart }}
           </div>
         </button>
         <!--        Avatar image set up for the profile-->
@@ -53,24 +53,29 @@
         <!-- Dropdown menu -->
         <div id="userDropdown"
              class="z-50 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
-          <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
+          <div v-if="token" class="px-4 py-3 text-sm text-gray-900 dark:text-white">
             <div>{{ user?.name }}</div>
             <div class="font-medium truncate">{{ user?.email }}</div>
           </div>
-          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="avatarButton">
+          <ul v-if="token" class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="avatarButton">
             <li>
               <RouterLink :to="{name: 'Profile', params: {id: userId}}"
                           class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Profile
               </RouterLink>
             </li>
             <li>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Earnings</a>
+              <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Transactions</a>
             </li>
           </ul>
-          <div class="py-1">
+          <div v-if="token" class="py-1">
             <RouterLink to="/auth/login"
                         class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                         @click="logout">Sign out
+            </RouterLink>
+          </div>
+          <div v-else class="py-1">
+            <RouterLink to="/auth/login"
+                        class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Sign in
             </RouterLink>
           </div>
         </div>

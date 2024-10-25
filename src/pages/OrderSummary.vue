@@ -9,7 +9,7 @@
 
           <dl>
             <dt class="text-base font-medium text-gray-900 dark:text-white">Individual</dt>
-            <dd class="mt-1 text-base font-normal text-gray-500 dark:text-gray-400">Bonnie Green - +1 234 567 890, San Francisco, California, United States, 3454, Scott Street</dd>
+            <dd class="mt-1 text-base font-normal text-gray-500 dark:text-gray-400">{{ address?.name }} - {{address?.address}}, {{address?.city}}</dd>
           </dl>
 
           <button type="button" data-modal-target="billingInformationModal" data-modal-toggle="billingInformationModal" class="text-base font-medium text-primary-700 hover:underline dark:text-primary-500">Edit</button>
@@ -19,20 +19,19 @@
           <div class="relative overflow-x-auto border-b border-gray-200 dark:border-gray-800">
             <table class="w-full text-left font-medium text-gray-900 dark:text-white md:table-fixed">
               <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-              <tr>
+              <tr v-for="pr in productsInOrderItem">
                 <td class="whitespace-nowrap py-4 md:w-[384px]">
                   <div class="flex items-center gap-4">
                     <a href="#" class="flex items-center aspect-square w-10 h-10 shrink-0">
-                      <img class="h-auto w-full max-h-full dark:hidden" src="https://flowbite.s3.amazonaws.com/blocks/e-commerce/imac-front.svg" alt="imac image" />
-                      <img class="hidden h-auto w-full max-h-full dark:block" src="https://flowbite.s3.amazonaws.com/blocks/e-commerce/imac-front-dark.svg" alt="imac image" />
+                      <img class="h-auto w-full max-h-full dark:hidden" :src="getImgUrl(pr.image)" alt="item image" />
                     </a>
-                    <a href="#" class="hover:underline">Apple iMac 27”</a>
+                    <a href="#" class="hover:underline">{{pr.name}}</a>
                   </div>
                 </td>
 
-                <td class="p-4 text-base font-normal text-gray-900 dark:text-white">x1</td>
+                <td class="p-4 text-base font-normal text-gray-900 dark:text-white">x{{pr.quantity}}</td>
 
-                <td class="p-4 text-right text-base font-bold text-gray-900 dark:text-white">$1,499</td>
+                <td class="p-4 text-right text-base font-bold text-gray-900 dark:text-white">KES {{pr.price}}</td>
               </tr>
 
               </tbody>
@@ -46,18 +45,18 @@
               <div class="space-y-2">
                 <dl class="flex items-center justify-between gap-4">
                   <dt class="text-gray-500 dark:text-gray-400">Original price</dt>
-                  <dd class="text-base font-medium text-gray-900 dark:text-white">$6,592.00</dd>
+                  <dd class="text-base font-medium text-gray-900 dark:text-white">KES {{order?.total}}</dd>
                 </dl>
 
                 <dl class="flex items-center justify-between gap-4">
                   <dt class="text-gray-500 dark:text-gray-400">Discount</dt>
-                  <dd class="text-base font-medium text-green-500">-$299.00</dd>
+                  <dd class="text-base font-medium text-green-500">-0.00</dd>
                 </dl>
               </div>
 
               <dl class="flex items-center justify-between gap-4 border-t border-gray-200 pt-2 dark:border-gray-700">
                 <dt class="text-lg font-bold text-gray-900 dark:text-white">Total</dt>
-                <dd class="text-lg font-bold text-gray-900 dark:text-white">$7,191.00</dd>
+                <dd class="text-lg font-bold text-gray-900 dark:text-white">KES {{order?.total}}</dd>
               </dl>
             </div>
 
@@ -136,8 +135,7 @@
               </div>
               <select id="saved-address-modal" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary-500 dark:focus:ring-primary-500">
                 <option selected>Choose one of your saved address</option>
-                <option value="address-1">San Francisco, California, United States, 3454, Scott Street</option>
-                <option value="address-2">New York, United States, Broadway 10012</option>
+                <option value="address">{{order?.address}}</option>
               </select>
               <div id="saved-address-modal-desc-2" role="tooltip" class="tooltip invisible absolute z-10 inline-block rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white opacity-0 shadow-sm transition-opacity duration-300 dark:bg-gray-700">
                 Choose one of your saved addresses
@@ -203,15 +201,61 @@
   </div>
 </template>
 
-<script setup>
-import {onMounted } from 'vue'
+<script setup lang="ts">
+import {computed, onMounted, Ref, ref} from 'vue'
 import {initFlowbite, initModals} from 'flowbite'
 import {useRoute} from 'vue-router'
+import {get} from "../boot";
+import {Address, Order} from "../models/Constants.js";
+import {jwtDecode} from 'jwt-decode'
 
 const route = useRoute()
-const orders = route.params.orders
+const errorMessage = ref('')
+const order: Ref<Order | null> = ref(null)
+const address: Ref<Address | null> = ref(null)
+const orderId = route.params.id
+const decodedToken = jwtDecode(localStorage.getItem('token') || '')
+const userId = decodedToken.sub
+
+const productsInOrderItem = order.value?.items.map(item => item.product)
+
+const fullAddress = computed(() => {
+  if (address.value) {
+    return `${address.value?.address}, ${address.value?.name}, ${address.value?.city}`
+  }
+  return ''
+})
+const fetchOrder = () => {
+  get(`orders/${orderId}`)
+    .then(response => {
+      order.value = response.data.data
+      console.log(order.value)
+    })
+    .catch(error => {
+      errorMessage.value = error.response.data.message
+      console.log(error)
+    })
+}
+
+const fetchAddress = () => {
+  get(`/address`)
+    .then(response => {
+      address.value = response.data.data
+      console.log(address.value)
+    })
+    .catch(error => {
+      errorMessage.value = error.response.data.message
+      console.log(error)
+    })
+}
+
+const getImgUrl = (img) => {
+  return `http://localhost:8080/${img}`
+}
 onMounted(() => {
   initFlowbite()
   initModals()
+  fetchAddress()
+  fetchOrder()
 })
 </script>

@@ -71,3 +71,15 @@ export interface Order{
     createdAt: string;
     updatedAt: string;
 }
+
+export interface Review {
+    id: string;
+    productId: string;
+    userId: string;
+    rating: number;
+    commentTitle: string;
+    comment: string;
+    helpful: number;
+    createdAt: string;
+    updatedAt: string;
+}

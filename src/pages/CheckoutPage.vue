@@ -70,15 +70,13 @@ const createOrder = () => {
   post("/orders", null)
       .then((res: AxiosResponse) => {
         if (res.data.status === true) {
-          console.log(res.data.data)
           order.value = res.data.data
-          router.push({name: 'OrderSummary', params: {order: order.value}})
+          router.push({name: 'OrderSummary', params: {id: order.value.id}})
         }
       })
       .catch((e: AxiosError) => {
         if (e.response) {
           errorMessage.value = e.response.data.message
-          console.log(e.response.data.message)
           clearErrorMessage()
         }
       })

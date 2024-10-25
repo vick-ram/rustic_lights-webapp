@@ -1,113 +1,123 @@
 <script setup lang="ts">
-import {patch, get, post} from '../boot'
+import {computed, ref, onMounted} from 'vue';
+import {get, patch, post} from '../boot';
 import {Cart, Order, Product} from "../models/Constants";
 import {AxiosError, AxiosResponse} from "axios";
-import {Ref, ref, onMounted} from "vue";
 
+const cart = ref<Cart | null>(null);
+const productsInCart = ref<Product[] | null>([]);
+const products = ref<Product[] | null>([]);
+const order = ref<Order | null>(null);
 
-const cart: Ref<Cart | null> = ref(null)
-const productsInCart: Ref<Product[] | null> = ref([])
-const products: Ref<Product[] | null> = ref([])
-const order: Ref<Order | null> = ref(null)
-
-const baseUrl = 'http://localhost:8080/'
+const baseUrl = 'http://localhost:8080/';
 
 const getImgUrl = (imageName) => {
-  return baseUrl + imageName
-}
+  return baseUrl + imageName;
+};
 
 const fetchCart = () => {
   get('/cart')
-      .then((response) => {
-        cart.value = response.data.data
-        productsInCart.value = response.data.data.items.map(item => item.product)
-        console.log(productsInCart.value)
-      })
-      .catch((e: AxiosError) => {
-        console.log(e.response?.data.message)
-      })
-}
+    .then((response) => {
+      cart.value = response.data.data;
+      productsInCart.value = response.data.data.items.map(item => item.product);
+      console.log(productsInCart.value);
+    })
+    .catch((e: AxiosError) => {
+      console.log(e.response?.data.message);
+    });
+};
+
+const totalAmount = computed(() => {
+  return cart.value?.items.map(item => parseFloat(item.unitPrice)).reduce((a, b) => a + b, 0) || 0;
+});
+
+const discountedAmount = computed(() => {
+  return cart.value?.items.map(item => parseFloat(item.discountPrice)).reduce((a, b) => a + b, 0) || 0;
+});
+
+const discount = computed(() => {
+  return totalAmount.value - discountedAmount.value;
+});
 
 const addProductToFavourite = (product: Product) => {
   patch(`/products/${product.id}`, null, {
     params: {favourite: true}
   })
-      .then((e:AxiosError) => {
-        console.log(e.response?.data.message)
-      })
-}
+    .then((e: AxiosError) => {
+      console.log(e.response?.data.message);
+    });
+};
 
 const fetch4Products = () => {
   get('/products')
-      .then((response) => {
-        products.value = response.data.data.slice(0, 4)
-      })
-      .catch((e: AxiosError) => {
-        console.log(e.response?.data.message)
-      })
-}
+    .then((response) => {
+      products.value = response.data.data.slice(0, 4);
+    })
+    .catch((e: AxiosError) => {
+      console.log(e.response?.data.message);
+    });
+};
 
 const createOrder = () => {
   post("/orders", null)
-      .then((res: AxiosResponse) => {
-        if (res.data.status === true) {
-          console.log(res.data.data)
-          order.value = res.data.data
-        }
-      })
-      .catch((e: AxiosError) => {
-        if (e.response) {
-          errorMessage.value = e.response.data.message
-          console.log(e.response.data.message)
-        }
-      })
-}
-
-
-const totalAmount = cart.value?.items.map(item => item.unitPrice).reduce((a, b) => a + b, 0)
-const discountedAmount = cart.value?.items.map(item => item.discountPrice).reduce((a, b) => a + b, 0)
-const discount = totalAmount - discountedAmount
+    .then((res: AxiosResponse) => {
+      if (res.data.status === true) {
+        console.log(res.data.data);
+        order.value = res.data.data;
+      }
+    })
+    .catch((e: AxiosError) => {
+      if (e.response) {
+        errorMessage.value = e.response.data.message;
+        console.log(e.response.data.message);
+      }
+    });
+};
 
 const deleteProductFromCart = (productId: string) => {
-  productsInCart.value = productsInCart.value?.filter(pr => pr.id !== productId)
+  productsInCart.value = productsInCart.value?.filter(pr => pr.id !== productId);
   patch('/cart', null, {
     params: {productId: productId}
   })
-      .then((response: AxiosResponse) => {
-        console.log(response.data.message)
-      })
-      .catch((e: AxiosError) => {
-        console.log(e.response.data.message)
-      })
-}
+    .then((response: AxiosResponse) => {
+      console.log(response.data.message);
+    })
+    .catch((e: AxiosError) => {
+      console.log(e.response?.data.message);
+    });
+};
+
 const incrementQuantity = (product: Product) => {
-  product.quantity += 1
-  updateProductQuantity(product)
-}
+  console.log("Incrementing, current quantity:", product.quantity);
+  product.quantity += 1;
+  updateProductQuantity(product);
+};
 
 const decrementQuantity = (product: Product) => {
+  console.log("Decrementing, current quantity:", product.quantity);
   if (product.quantity > 1) {
-    product.quantity -= 1
-    updateProductQuantity(product)
+    product.quantity -= 1;
+    updateProductQuantity(product);
   }
-}
+};
+
 
 const updateProductQuantity = (product: Product) => {
   patch(`/cart/${product.id}`, null, {
     params: {quantity: product.quantity}
   })
-      .then((response: AxiosResponse) => {
-        console.log(response.data.message)
-      })
-      .catch((e: AxiosError) => {
-        console.log(e.response.data.message)
-      })
-}
+    .then((response: AxiosResponse) => {
+      console.log(response.data.message);
+    })
+    .catch((e: AxiosError) => {
+      console.log(e.response?.data.message);
+    });
+};
 
 onMounted(() => {
-  fetchCart()
-  fetch4Products()
-})
+  fetchCart();
+  fetch4Products();
+});
 </script>
 
 <template>
@@ -144,8 +154,8 @@ onMounted(() => {
                     </button>
                     <input type="text" v-model="product.quantity" id="counter-input" data-input-counter
                            class="w-10 shrink-0 border-0 bg-transparent text-center text-sm font-medium text-gray-900 focus:outline-none focus:ring-0 dark:text-white"
-                           placeholder="" value="1" required/>
-                    <button @click="decrementQuantity(product)" type="button" id="increment-button" data-input-counter-increment="counter-input"
+                           placeholder="" required/>
+                    <button @click="incrementQuantity(product)" type="button" id="increment-button" data-input-counter-increment="counter-input"
                             class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-gray-300 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:ring-gray-700">
                       <svg class="h-2.5 w-2.5 text-gray-900 dark:text-white" aria-hidden="true"
                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">

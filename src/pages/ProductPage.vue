@@ -32,15 +32,18 @@ const reviewData = {
 }
 
 const addReview = () => {
-  post(`/reviews/${productId}`, review)
+  post(`/reviews/${productId}`, reviewData)
       .then((response) => {
-        review.value = response.data.data
+        console.log('Sending', reviewData);
+        review.value = response.data.data;
+        console.log('Review added:', response.data);
       })
       .catch((e: AxiosError) => {
-        console.log(e.response?.data.message)
-        errorMessage.value = e.response?.data.message
-      })
-}
+        console.error('Error adding review:', e);
+        errorMessage.value = e.response?.data?.message || 'An unknown error occurred';
+      });
+};
+
 
 const fetchReviews = () => {
   get(`/reviews/${productId}`)
@@ -101,6 +104,7 @@ onMounted(() => {
     fetchProduct()
   }
   fetchUser()
+  fetchReviews()
   formattedDateTime.value = formatDateTime(user.value?.createdAt)
 })
 </script>
@@ -130,8 +134,7 @@ onMounted(() => {
               <h2 class="text-2xl font-bold text-gray-800 mb-2">
                 {{ product.name }} - {{product.shortDescription}}
               </h2>
-              <p>{{formatDateTime}}</p>
-              <p class="text-gray-600 mb-4">{{ product.description }}</p>
+              <p class="text-gray-600 mb-4 mt-6">{{ product.detailedDescription }}</p>
               <p class="text-xl font-semibold text-gray-800 mb-6">KES {{ formatPrice(product.price) }}</p>
 
               <!-- Action Buttons -->
@@ -255,7 +258,7 @@ onMounted(() => {
             <!-- Modal header -->
             <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                Create New Product
+                Add Comment and Review
               </h3>
               <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="crud-modal">
                 <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -265,34 +268,28 @@ onMounted(() => {
               </button>
             </div>
             <!-- Modal body -->
-            <form class="p-4 md:p-5">
+            <form @submit.prevent="addReview" class="p-4 md:p-5">
               <div class="grid gap-4 mb-4 grid-cols-2">
                 <div class="col-span-2">
                   <label for="commentTitle" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Comment Title</label>
-                  <input type="text" name="commentTitle" id="commentTitle" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Type product name" required="">
+                  <input v-model="reviewData.commentTitle" type="text" name="commentTitle" id="commentTitle" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Type comment title" required="">
                 </div>
                 <div class="col-span-2 sm:col-span-1">
                   <label for="rating" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Rating</label>
-                  <input type="number" name="rating" id="rating" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="0" required="">
+                  <input v-model="reviewData.rating" type="number" name="rating" id="rating" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="0" required="">
                 </div>
                 <div class="col-span-2 sm:col-span-1">
-                  <label for="category" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category</label>
-                  <select id="category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                    <option selected="">Select category</option>
-                    <option value="TV">TV/Monitors</option>
-                    <option value="PC">PC</option>
-                    <option value="GA">Gaming/Console</option>
-                    <option value="PH">Phones</option>
-                  </select>
+                  <label for="helpful" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Helpful</label>
+                  <input v-model="reviewData.helpful" type="number" name="helpful" id="helpful" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="0" required="">
                 </div>
                 <div class="col-span-2">
                   <label for="comment" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Comment</label>
-                  <textarea id="comment" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write comment here"></textarea>
+                  <textarea v-model="reviewData.comment" id="comment" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Write comment here"></textarea>
                 </div>
               </div>
               <button type="submit" class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                 <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
-                Add new product
+                Create Comment
               </button>
             </form>
           </div>
@@ -302,7 +299,7 @@ onMounted(() => {
 
       <div class="border-t border-gray-300 w-full dark:border-gray-600 my-4"></div>
 
-      <article>
+      <article v-for="rev in reviews" :key="rev.id">
         <div class="flex items-center mb-4">
           <img class="w-10 h-10 me-4 rounded-full" :src="getImgUrl(user?.profile)" alt="">
           <div class="font-medium dark:text-white">
@@ -325,14 +322,13 @@ onMounted(() => {
           <svg class="w-4 h-4 text-gray-300 dark:text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
             <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
           </svg>
-          <h3 class="ms-2 text-sm font-semibold text-gray-900 dark:text-white">Thinking to buy another one!</h3>
+          <h3 class="ms-2 text-sm font-semibold text-gray-900 dark:text-white">{{rev.commentTitle}}</h3>
         </div>
-        <footer class="mb-5 text-sm text-gray-500 dark:text-gray-400"><p>Reviewed in the United Kingdom on <time datetime="2017-03-03 19:00">March 3, 2017</time></p></footer>
-        <p class="mb-2 text-gray-500 dark:text-gray-400">This is my third Invicta Pro Diver. They are just fantastic value for money. This one arrived yesterday and the first thing I did was set the time, popped on an identical strap from another Invicta and went in the shower with it to test the waterproofing.... No problems.</p>
-        <p class="mb-3 text-gray-500 dark:text-gray-400">It is obviously not the same build quality as those very expensive watches. But that is like comparing a Citroën to a Ferrari. This watch was well under £100! An absolute bargain.</p>
+        <footer class="mb-5 text-sm text-gray-500 dark:text-gray-400"><p>Reviewed in Kenya on <time datetime="2017-03-03 19:00">March 3, 2017</time></p></footer>
+        <p class="mb-2 text-gray-500 dark:text-gray-400">{{rev.comment}}</p>
         <a href="#" class="block mb-5 text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">Read more</a>
         <aside>
-          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">19 people found this helpful</p>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400"><span>{{rev.helpful}}</span> people found this helpful</p>
           <div class="flex items-center mt-3">
             <a href="#" class="px-2 py-1.5 text-xs font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Helpful</a>
             <a href="#" class="ps-4 text-sm font-medium text-blue-600 hover:underline dark:text-blue-500 border-gray-200 ms-4 border-s md:mb-0 dark:border-gray-600">Report abuse</a>
